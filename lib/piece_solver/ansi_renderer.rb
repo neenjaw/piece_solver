@@ -17,7 +17,7 @@ module PieceSolver
 
     PEG_FG_COLOR = 31 # red
 
-    def self.render(board_size:, pegs:, placements:, cursor: nil)
+    def self.render(board_size:, pegs:, placements:, cursor: nil, highlight_cells: nil, domain_highlights: nil)
       grid = Array.new(board_size) { Array.new(board_size, nil) }
 
       pegs.each do |(x, y)|
@@ -42,8 +42,9 @@ module PieceSolver
       end
 
       # Build ANSI tile rows using foreground-colored full blocks
-      tile_rows = grid.map do |row|
-        row.map do |cell|
+      tile_rows = (0...board_size).map do |y|
+        (0...board_size).map do |x|
+          cell = grid[y][x]
           if cell == :peg
             "\e[#{PEG_FG_COLOR}m██#{RESET}"
           elsif cell == :cursor
@@ -51,7 +52,17 @@ module PieceSolver
           elsif cell && PIECE_FG_COLORS[cell]
             "\e[#{PIECE_FG_COLORS[cell]}m██#{RESET}"
           else
-            "  "
+            if highlight_cells && highlight_cells.include?([x, y])
+              color = 90
+              if domain_highlights && domain_highlights.is_a?(Hash)
+                domain_idx = domain_highlights[[x, y]]
+                # Map domain index 0,1,2 to cyan, yellow, magenta (36,33,35)
+                color = { 0 => 36, 1 => 33, 2 => 35 }[domain_idx] || 90
+              end
+              "\e[#{color}m··#{RESET}"
+            else
+              "  "
+            end
           end
         end.join
       end
@@ -68,6 +79,11 @@ module PieceSolver
       legend << legend_entry("cursor", 97, fg: true)
       PIECE_FG_COLORS.each do |name, fg|
         legend << legend_entry(name, fg, fg: true)
+      end
+      if domain_highlights
+        legend << legend_entry("D0", 36, fg: true)
+        legend << legend_entry("D1", 33, fg: true)
+        legend << legend_entry("D2", 35, fg: true)
       end
 
       # Use CRLF to ensure return to column 0 on terminals that treat LF as line feed only

@@ -43,7 +43,8 @@ module PieceSolver
     def draw
       # Clear screen and move cursor to home to avoid line wrapping/indentation issues
       print "\e[2J\e[H"
-      print AnsiRenderer.render(board_size: @board_size, pegs: @pegs, placements: nil, cursor: @cursor)
+      candidates, domain_map = highlight_candidates_with_domains
+      print AnsiRenderer.render(board_size: @board_size, pegs: @pegs, placements: nil, cursor: @cursor, highlight_cells: candidates, domain_highlights: domain_map)
       print "\r\n"
       puts "\nPegs placed: #{@pegs.size}/3"
     end
@@ -140,6 +141,37 @@ module PieceSolver
       domains.permutation(pegs_subset.size).any? do |perm|
         perm.each_with_index.all? { |dom, i| domain_opts[i].include?(dom) }
       end
+    end
+
+    # Return set of candidate cells the current cursor could be placed in,
+    # based on domains not yet used by placed pegs
+    def highlight_candidates_with_domains
+      used_domains = used_domain_indices(@pegs)
+      remaining_domains = [0, 1, 2] - used_domains
+      return [nil, nil] if remaining_domains.empty?
+
+      candidates = []
+      domain_map = {}
+      remaining_domains.each do |di|
+        @domains[di].each do |(x, y)|
+          next unless x.between?(0, @board_size - 1) && y.between?(0, @board_size - 1)
+          next if @pegs.include?([x, y])
+          candidates << [x, y]
+          domain_map[[x, y]] = di
+        end
+      end
+      [candidates.to_set, domain_map]
+    end
+
+    def used_domain_indices(pegs)
+      allowed = @domains
+      # Greedy: map each peg to any matching domain, then minimal cover; since validation ensures feasibility, this is fine for highlighting
+      indices = []
+      pegs.each do |(x, y)|
+        match = allowed.each_index.find { |i| allowed[i].include?([x, y]) }
+        indices << match if match
+      end
+      indices
     end
   end
 end
