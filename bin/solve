@@ -8,11 +8,15 @@ require "piece_solver/pieces"
 require "piece_solver/peg_rules"
 require "piece_solver/board"
 require "piece_solver/solver"
+require "piece_solver/ansi_renderer"
 
-options = { pegs: [] }
+options = { pegs: [], format: "json" }
 OptionParser.new do |opts|
   opts.on("--pegs PEGS", "Space-separated x,y triplets, e.g. '1,0 3,2 4,4'") do |str|
     options[:pegs] = str.split(/\s+/).map { |p| p.split(",").map(&:to_i) }
+  end
+  opts.on("--format FORMAT", "json|ansi (default: json)") do |fmt|
+    options[:format] = fmt
   end
 end.parse!
 
@@ -34,13 +38,17 @@ solver = PieceSolver::Solver.new(board)
 placements = solver.solve_one
 
 if placements
-  puts JSON.pretty_generate({
-    board_size: 5,
-    pegs: options[:pegs],
-    solution: {
-      placements: placements.map { |pl| { piece: pl.piece_name, origin: pl.origin, orientation_index: pl.orientation_index, cells: pl.cells } }
-    }
-  })
+  if options[:format] == "ansi"
+    puts PieceSolver::AnsiRenderer.render(board_size: 5, pegs: options[:pegs], placements: placements)
+  else
+    puts JSON.pretty_generate({
+      board_size: 5,
+      pegs: options[:pegs],
+      solution: {
+        placements: placements.map { |pl| { piece: pl.piece_name, origin: pl.origin, orientation_index: pl.orientation_index, cells: pl.cells } }
+      }
+    })
+  end
 else
   puts JSON.pretty_generate({ error: "no_solution" })
   exit 2
