@@ -33,9 +33,9 @@ module PieceSolver
         end
       end
 
-      lines = []
-      grid.each do |row|
-        line = row.map do |cell|
+      # Build ANSI tile rows
+      tile_rows = grid.map do |row|
+        row.map do |cell|
           if cell == :peg
             "\e[#{PEG_BG_COLOR}m  #{RESET}"
           elsif cell && PIECE_BG_COLORS[cell]
@@ -44,8 +44,13 @@ module PieceSolver
             "\e[#{EMPTY_BG_COLOR}m  #{RESET}"
           end
         end.join
-        lines << line
       end
+
+      # Add a Unicode border sized for two-character-wide tiles
+      horiz = "─" * (board_size * 2)
+      top_border = "┌#{horiz}┐"
+      bottom_border = "└#{horiz}┘"
+      bordered_rows = tile_rows.map { |r| "│#{r}│" }
 
       # Legend
       legend = []
@@ -54,7 +59,7 @@ module PieceSolver
         legend << legend_entry(name, bg)
       end
 
-      (lines + ["", "Legend:", legend.join("  ")]).join("\n")
+      ([top_border] + bordered_rows + [bottom_border, "", "Legend:", legend.join("  ")]).join("\n")
     end
 
     def self.legend_entry(name, bg)
