@@ -9,8 +9,9 @@ require "piece_solver/peg_rules"
 require "piece_solver/board"
 require "piece_solver/solver"
 require "piece_solver/ansi_renderer"
+require "piece_solver/interactive_pegs"
 
-options = { pegs: [], format: "json" }
+options = { pegs: [], format: "json", interactive: false }
 OptionParser.new do |opts|
   opts.on("--pegs PEGS", "Space-separated x,y triplets, e.g. '1,0 3,2 4,4'") do |str|
     options[:pegs] = str.split(/\s+/).map { |p| p.split(",").map(&:to_i) }
@@ -18,18 +19,26 @@ OptionParser.new do |opts|
   opts.on("--format FORMAT", "json|ansi (default: json)") do |fmt|
     options[:format] = fmt
   end
+  opts.on("--interactive", "Interactive mode to place pegs with arrows or hjkl") do
+    options[:interactive] = true
+  end
 end.parse!
 
 # Validate pegs against allowed positions; print JSON error and exit non-zero on failure
-begin
-  PieceSolver::PegRules.validate!(options[:pegs], board_size: 5)
-rescue ArgumentError => e
-  puts JSON.pretty_generate({
-    error: "invalid_pegs",
-    message: e.message,
-    domains: PieceSolver::PegRules.allowed_positions(5)
-  })
-  exit 1
+if options[:interactive]
+  result = PieceSolver::InteractivePegs.new(board_size: 5).run
+  options[:pegs] = result.pegs
+else
+  begin
+    PieceSolver::PegRules.validate!(options[:pegs], board_size: 5)
+  rescue ArgumentError => e
+    puts JSON.pretty_generate({
+      error: "invalid_pegs",
+      message: e.message,
+      domains: PieceSolver::PegRules.allowed_positions(5)
+    })
+    exit 1
+  end
 end
 
 # Run the solver (M2): find a single solution and print JSON

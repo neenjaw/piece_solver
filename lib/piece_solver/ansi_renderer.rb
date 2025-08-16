@@ -18,7 +18,7 @@ module PieceSolver
     PEG_BG_COLOR = 41 # red
     EMPTY_BG_COLOR = 40 # black (shouldn't occur if fully tiled)
 
-    def self.render(board_size:, pegs:, placements:)
+    def self.render(board_size:, pegs:, placements:, cursor: nil)
       grid = Array.new(board_size) { Array.new(board_size, nil) }
 
       pegs.each do |(x, y)|
@@ -26,10 +26,19 @@ module PieceSolver
         grid[y][x] = :peg
       end
 
-      placements.each do |pl|
-        name = pl.piece_name
-        pl.cells.each do |(x, y)|
-          grid[y][x] = name
+      if placements
+        placements.each do |pl|
+          name = pl.piece_name
+          pl.cells.each do |(x, y)|
+            grid[y][x] = name
+          end
+        end
+      end
+
+      if cursor
+        cx, cy = cursor
+        if cx.between?(0, board_size - 1) && cy.between?(0, board_size - 1)
+          grid[cy][cx] = :cursor unless grid[cy][cx]
         end
       end
 
@@ -38,6 +47,8 @@ module PieceSolver
         row.map do |cell|
           if cell == :peg
             "\e[#{PEG_BG_COLOR}m  #{RESET}"
+          elsif cell == :cursor
+            "\e[107m  #{RESET}"
           elsif cell && PIECE_BG_COLORS[cell]
             "\e[#{PIECE_BG_COLORS[cell]}m  #{RESET}"
           else
@@ -55,6 +66,7 @@ module PieceSolver
       # Legend
       legend = []
       legend << legend_entry("peg", PEG_BG_COLOR)
+      legend << legend_entry("cursor", 107)
       PIECE_BG_COLORS.each do |name, bg|
         legend << legend_entry(name, bg)
       end
