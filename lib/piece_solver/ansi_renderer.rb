@@ -58,6 +58,7 @@ module PieceSolver
       end
 
       # Add a Unicode border sized for two-character-wide tiles
+      # Borders should match the printed width; each cell prints 2 spaces plus reset code
       horiz = "─" * (board_size * 2)
       top_border = "┌#{horiz}┐"
       bottom_border = "└#{horiz}┘"

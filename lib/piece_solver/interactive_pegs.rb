@@ -31,8 +31,9 @@ module PieceSolver
     private
 
     def instructions
-      puts "Interactive mode: place 3 pegs"
-      puts "Keys: arrows or h/j/k/l to move, space/enter to place, u to undo, q to quit"
+      puts "Interactive mode: place 3 pegs (toggle to place/remove)"
+      puts "Keys: arrows or h/j/k/l to move, space/enter to toggle, u to undo, q to quit"
+      puts "Ctrl-C / Ctrl-D to quit"
       puts "Domains (one peg per domain):"
       @domains.each_with_index do |d, i|
         puts "  D#{i}: #{d.inspect}"
@@ -51,7 +52,7 @@ module PieceSolver
       when :down, 'j' then move(0, 1)
       when :left, 'h' then move(-1, 0)
       when :right, 'l' then move(1, 0)
-      when :place then place
+      when :place then toggle_place
       when :undo then undo
       when :quit then abort("Aborted by user")
       end
@@ -64,14 +65,14 @@ module PieceSolver
       @cursor = [nx, ny]
     end
 
-    def place
-      return if @pegs.include?(@cursor)
-      # Validate domain uniqueness as we place
+    def toggle_place
+      if @pegs.include?(@cursor)
+        @pegs.delete(@cursor)
+        return
+      end
       temp = @pegs + [@cursor]
-      begin
-        PegRules.validate!(temp, board_size: @board_size)
-      rescue ArgumentError => e
-        warn e.message
+      unless partial_feasible?(temp)
+        warn "invalid placement (domain conflict or out of domains)"
         sleep 0.6
         return
       end
@@ -105,6 +106,8 @@ module PieceSolver
           when "D" then return :left
           end
         end
+      when "\u0003" then return :quit # Ctrl-C
+      when "\u0004" then return :quit # Ctrl-D
       when "h" then return :left
       when "j" then return :down
       when "k" then return :up
@@ -115,6 +118,26 @@ module PieceSolver
       when "q" then return :quit
       end
       nil
+    end
+
+    # Check if the partial set of pegs can still satisfy one-per-domain rule
+    def partial_feasible?(pegs_subset)
+      return false unless pegs_subset.uniq.size == pegs_subset.size
+      # All within bounds
+      return false unless pegs_subset.all? { |(x, y)| x.between?(0, @board_size - 1) && y.between?(0, @board_size - 1) }
+
+      allowed = @domains
+      domain_opts = pegs_subset.map do |(x, y)|
+        opts = allowed.each_index.select { |i| allowed[i].include?([x, y]) }
+        return false if opts.empty?
+        opts
+      end
+
+      # Try to assign distinct domains to each peg (permutation over 0..2)
+      domains = [0, 1, 2]
+      domains.permutation(pegs_subset.size).any? do |perm|
+        perm.each_with_index.all? { |dom, i| domain_opts[i].include?(dom) }
+      end
     end
   end
 end
