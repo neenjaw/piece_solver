@@ -4,6 +4,11 @@
 
 - **Board**: 5×5 grid using 0-based coordinates where x grows to the right and y grows downward. Valid cells: x ∈ [0,4], y ∈ [0,4].
 - **Pegs**: Exactly three blocked cells; pieces may not occupy these coordinates.
+  - Placement restrictions (peg index is 1-based in this description):
+    - Peg 1 allowed positions: [(1,0),(0,0),(0,1),(0,2),(0,3),(0,4),(0,5)]
+    - Peg 2 allowed positions: [(1,2),(2,2),(2,3),(2,4),(3,4),(4,4),(4,3)]
+    - Peg 3 allowed positions: [(1,1),(2,1),(3,1),(3,2),(3,3),(4,1),(4,0),(3,0)]
+    - Note: For a 5×5 board (x,y ∈ [0,4]), any coordinates outside the board (e.g., (0,5)) are ignored during validation.
 - **Pieces** (given as unit-offsets from their local origin (0,0)):
   - **short_l**: [(0,0), (1,0), (0,1)]
   - **long_l**: [(0,0), (1,0), (2,0), (0,1)]
@@ -59,6 +64,8 @@
 ```bash
 bin/solve --pegs "1,0 3,2 4,4"
 ```
+
+- On invalid pegs per the restrictions, the CLI exits non-zero and prints a JSON error with a message and the allowed positions for each peg.
 
 ## Solver approach
 
