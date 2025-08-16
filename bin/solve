@@ -23,7 +23,7 @@ rescue ArgumentError => e
   puts JSON.pretty_generate({
     error: "invalid_pegs",
     message: e.message,
-    allowed: PieceSolver::PegRules.allowed_positions(5)
+    domains: PieceSolver::PegRules.allowed_positions(5)
   })
   exit 1
 end
