@@ -6,6 +6,8 @@ require "json"
 require "optparse"
 require "piece_solver/pieces"
 require "piece_solver/peg_rules"
+require "piece_solver/board"
+require "piece_solver/solver"
 
 options = { pegs: [] }
 OptionParser.new do |opts|
@@ -26,11 +28,20 @@ rescue ArgumentError => e
   exit 1
 end
 
-# For now (M1), just output piece names and orientation counts as JSON
-pieces = PieceSolver::Pieces.all
-summary = pieces.map { |p| [p.name, p.orientations.size] }.to_h
-puts JSON.pretty_generate({
-  board_size: 5,
-  pegs: options[:pegs],
-  pieces: summary
-})
+# Run the solver (M2): find a single solution and print JSON
+board = PieceSolver::Board.new(size: 5, pegs: options[:pegs])
+solver = PieceSolver::Solver.new(board)
+placements = solver.solve_one
+
+if placements
+  puts JSON.pretty_generate({
+    board_size: 5,
+    pegs: options[:pegs],
+    solution: {
+      placements: placements.map { |pl| { piece: pl.piece_name, origin: pl.origin, orientation_index: pl.orientation_index, cells: pl.cells } }
+    }
+  })
+else
+  puts JSON.pretty_generate({ error: "no_solution" })
+  exit 2
+end
