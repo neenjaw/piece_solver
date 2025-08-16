@@ -11,7 +11,7 @@ RSpec.describe PieceSolver::Piece do
       "square"   => 1,
       "bar"      => 2,
       "short_l"  => 4,
-      "zig"      => 8,
+      "zig"      => 4,
       "triangle" => 4,
       "long_l"   => 8
     )

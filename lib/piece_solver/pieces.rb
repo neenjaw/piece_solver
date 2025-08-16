@@ -9,7 +9,8 @@ module PieceSolver
         Piece.new("short_l", [[0,0],[1,0],[0,1]]),
         Piece.new("long_l", [[0,0],[1,0],[2,0],[0,1]]),
         Piece.new("square",  [[0,0],[1,0],[0,1],[1,1]]),
-        Piece.new("zig",     [[0,0],[0,1],[1,1],[2,1]]),
+        # Zig tetromino: like a 2x2 square with the top row shifted right by 1
+        Piece.new("zig",     [[1,0],[2,0],[0,1],[1,1]]),
         Piece.new("bar",     [[0,0],[0,1],[0,2]]),
         Piece.new("triangle",[[0,0],[0,1],[1,1],[0,2]])
       ]
