@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+require "json"
+require "optparse"
+require "piece_solver/pieces"
+
+options = { pegs: [] }
+OptionParser.new do |opts|
+  opts.on("--pegs PEGS", "Space-separated x,y triplets, e.g. '1,0 3,2 4,4'") do |str|
+    options[:pegs] = str.split(/\s+/).map { |p| p.split(",").map(&:to_i) }
+  end
+end.parse!
+
+# For now (M1), just output piece names and orientation counts as JSON
+pieces = PieceSolver::Pieces.all
+summary = pieces.map { |p| [p.name, p.orientations.size] }.to_h
+puts JSON.pretty_generate({
+  board_size: 5,
+  pegs: options[:pegs],
+  pieces: summary
+})
