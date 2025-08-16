@@ -48,7 +48,10 @@ placements = solver.solve_one
 
 if placements
   if options[:format] == "ansi"
-    puts PieceSolver::AnsiRenderer.render(board_size: 5, pegs: options[:pegs], placements: placements)
+    # Clear screen and home before printing solution to avoid leftover scrollback spacing
+    print "\e[2J\e[H"
+    print PieceSolver::AnsiRenderer.render(board_size: 5, pegs: options[:pegs], placements: placements)
+    print "\r\n"
   else
     puts JSON.pretty_generate({
       board_size: 5,

@@ -56,11 +56,11 @@ module PieceSolver
         end.join
       end
 
-      # Add a simple ASCII border sized for 2-char tiles for maximum compatibility
-      horiz = "-" * (board_size * 2)
-      top_border = "+#{horiz}+"
-      bottom_border = "+#{horiz}+"
-      bordered_rows = tile_rows.map { |r| "|#{r}|" }
+      # Use Unicode box-drawing border sized for 2-char tiles
+      horiz = "─" * (board_size * 2)
+      top_border = "┌#{horiz}┐"
+      bottom_border = "└#{horiz}┘"
+      bordered_rows = tile_rows.map { |r| "│#{r}│" }
 
       # Legend
       legend = []
