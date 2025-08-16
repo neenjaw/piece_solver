@@ -41,8 +41,10 @@ module PieceSolver
     end
 
     def draw
-      system("clear")
-      puts AnsiRenderer.render(board_size: @board_size, pegs: @pegs, placements: nil, cursor: @cursor)
+      # Clear screen and move cursor to home to avoid line wrapping/indentation issues
+      print "\e[2J\e[H"
+      print AnsiRenderer.render(board_size: @board_size, pegs: @pegs, placements: nil, cursor: @cursor)
+      print "\r\n"
       puts "\nPegs placed: #{@pegs.size}/3"
     end
 

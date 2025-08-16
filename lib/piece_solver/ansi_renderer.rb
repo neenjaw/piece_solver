@@ -70,7 +70,8 @@ module PieceSolver
         legend << legend_entry(name, fg, fg: true)
       end
 
-      ([top_border] + bordered_rows + [bottom_border, "", "Legend:", legend.join("  ")]).join("\n")
+      # Use CRLF to ensure return to column 0 on terminals that treat LF as line feed only
+      ([top_border] + bordered_rows + [bottom_border, "", "Legend:", legend.join("  ")]).join("\r\n")
     end
 
     def self.legend_entry(name, code, fg: false)
